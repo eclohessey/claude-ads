@@ -70,6 +70,7 @@ class PageParser(HTMLParser):
         self.text_parts = []
         self.tag_counts = Counter()
         self.first_paragraph = None
+        self.script_chars = 0
 
         self._stack = []
         self._capture = None        # ("h", level) | ("jsonld",) | ("a",)
@@ -156,6 +157,8 @@ class PageParser(HTMLParser):
             return
         if "title" in self._stack and self.title is None:
             self.title = re.sub(r"\s+", " ", data).strip()
+        if "script" in self._stack:
+            self.script_chars += len(data)
         if not self._in_non_content():
             self.text_parts.append(data)
 
@@ -224,9 +227,17 @@ def analyze_html(url, html, status=None, headers=None, elapsed_ms=None, redirect
     dangling_heads = [h for h in subheads if DANGLING_RE.match(h)]
 
     # An SPA that ships an empty shell is invisible to most AI crawlers, which
-    # (unlike Googlebot) generally do not execute JavaScript.
-    script_tags = p.tag_counts.get("script", 0)
-    js_dependent = len(words) < 200 and script_tags >= 3
+    # (unlike Googlebot) generally do not execute JavaScript. Word count alone
+    # cannot distinguish that from a genuinely thin page, so require the script
+    # payload to dwarf the rendered text as well.
+    text_chars = len(body_text)
+    script_ratio = round(p.script_chars / text_chars, 1) if text_chars else None
+    js_dependent = (
+        len(words) < 200
+        and p.tag_counts.get("script", 0) >= 3
+        and text_chars > 0
+        and p.script_chars > 5 * text_chars
+    )
 
     return {
         "url": url,
@@ -293,6 +304,7 @@ def analyze_html(url, html, status=None, headers=None, elapsed_ms=None, redirect
             "published_time": p.meta.get("article:published_time"),
             "modified_time": p.meta.get("article:modified_time"),
             "js_dependent_content": js_dependent,
+            "script_to_text_ratio": script_ratio,
         },
         "links": {
             "internal": len(set(internal)),
@@ -380,6 +392,15 @@ def crawl(start_url, limit=10, timeout=20):
         seen.add(url)
 
         page = fetch(url, session, timeout)
+
+        # Dedupe on the FINAL url too: "/x" and "/x/" (or http->https) are one
+        # page, and counting both inflates duplicate-title and thin-page counts.
+        final = page.get("url", url)
+        if final != url:
+            if final in seen:
+                continue
+            seen.add(final)
+
         pages.append(page)
 
         for link in page.get("links", {}).get("internal_urls", []):
