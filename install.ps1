@@ -3,20 +3,21 @@
 .SYNOPSIS
     Claude Ads Installer for Windows
 .DESCRIPTION
-    Installs the Claude Ads skill, sub-skills, agents, and reference files
-    for Claude Code on Windows systems.
+    Installs the Claude Ads and Claude SEO skills, sub-skills, agents, and
+    reference files for Claude Code on Windows systems.
 #>
 
 $ErrorActionPreference = "Stop"
 
 function Main {
     $SkillDir = Join-Path $env:USERPROFILE ".claude\skills\ads"
+    $SeoSkillDir = Join-Path $env:USERPROFILE ".claude\skills\seo"
     $AgentDir = Join-Path $env:USERPROFILE ".claude\agents"
     $RepoUrl = "https://github.com/AgriciDaniel/claude-ads"
 
     Write-Host "=================================="
     Write-Host "   Claude Ads - Installer"
-    Write-Host "   Claude Code Paid Ads Skill"
+    Write-Host "   Paid Ads + SEO / AI Search Skills"
     Write-Host "=================================="
     Write-Host ""
 
@@ -29,6 +30,7 @@ function Main {
 
     # Create directories
     New-Item -ItemType Directory -Path (Join-Path $SkillDir "references") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $SeoSkillDir "references") -Force | Out-Null
     New-Item -ItemType Directory -Path $AgentDir -Force | Out-Null
 
     # Clone to temp directory
@@ -46,6 +48,8 @@ function Main {
         Write-Host "Installing skill files..."
         Copy-Item "$TempDir\claude-ads\ads\SKILL.md" -Destination "$SkillDir\SKILL.md" -Force
         Copy-Item "$TempDir\claude-ads\ads\references\*.md" -Destination "$SkillDir\references\" -Force
+        Copy-Item "$TempDir\claude-ads\seo\SKILL.md" -Destination "$SeoSkillDir\SKILL.md" -Force
+        Copy-Item "$TempDir\claude-ads\seo\references\*.md" -Destination "$SeoSkillDir\references\" -Force
 
         # Copy sub-skills
         Write-Host "Installing sub-skills..."
@@ -75,6 +79,14 @@ function Main {
             New-Item -ItemType Directory -Path $ScriptsDir -Force | Out-Null
             Copy-Item "$ScriptsSource\*.py" -Destination "$ScriptsDir\" -Force
             Copy-Item "$TempDir\claude-ads\requirements.txt" -Destination "$SkillDir\requirements.txt" -Force
+
+            # SEO scripts resolve under the seo skill directory
+            $SeoScriptsDir = Join-Path $SeoSkillDir "scripts"
+            New-Item -ItemType Directory -Path $SeoScriptsDir -Force | Out-Null
+            foreach ($SeoScript in @("seo_crawl.py", "check_ai_crawlers.py", "ai_visibility.py")) {
+                Copy-Item (Join-Path $ScriptsSource $SeoScript) -Destination "$SeoScriptsDir\" -Force
+            }
+            Copy-Item "$TempDir\claude-ads\requirements.txt" -Destination "$SeoSkillDir\requirements.txt" -Force
         }
 
         # Install Python dependencies (required for /ads generate, /ads dna screenshots)
@@ -102,17 +114,18 @@ function Main {
         Write-Host "Claude Ads installed successfully!" -ForegroundColor Green
         Write-Host ""
         Write-Host "  Installed:"
-        Write-Host "    - 1 main skill (ads orchestrator)"
-        Write-Host "    - 17 sub-skills (platform + functional + creative)"
-        Write-Host "    - 10 agents (6 audit + 4 creative)"
-        Write-Host "    - 20 reference files"
+        Write-Host "    - 2 main skills (ads + seo orchestrators)"
+        Write-Host "    - 26 sub-skills (17 ads + 9 seo)"
+        Write-Host "    - 14 agents (6 ad audit + 4 creative + 4 seo audit)"
+        Write-Host "    - 30 reference files"
         Write-Host "    - 11 industry templates"
         Write-Host ""
         Write-Host "Usage:"
         Write-Host "  1. Start Claude Code:  claude"
         Write-Host "  2. Run commands:       /ads audit"
         Write-Host "                         /ads plan saas"
-        Write-Host "                         /ads google"
+        Write-Host "                         /seo audit example.com"
+        Write-Host "                         /seo aeo example.com"
     }
     finally {
         # Cleanup temp directory

@@ -14,10 +14,12 @@ function Main {
 
     $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
 
-    # Remove main skill (orchestrator + references)
-    $MainSkill = Join-Path $ClaudeDir "skills\ads"
-    if (Test-Path $MainSkill) {
-        Remove-Item -Path $MainSkill -Recurse -Force
+    # Remove main skills (orchestrators + references + scripts)
+    foreach ($Main in @("skills\ads", "skills\seo")) {
+        $MainSkill = Join-Path $ClaudeDir $Main
+        if (Test-Path $MainSkill) {
+            Remove-Item -Path $MainSkill -Recurse -Force
+        }
     }
 
     # Remove sub-skills
@@ -25,7 +27,9 @@ function Main {
         "ads-audit", "ads-google", "ads-meta", "ads-youtube",
         "ads-linkedin", "ads-tiktok", "ads-microsoft", "ads-creative",
         "ads-landing", "ads-budget", "ads-plan", "ads-competitor", "ads-apple",
-        "ads-dna", "ads-create", "ads-generate", "ads-photoshoot"
+        "ads-dna", "ads-create", "ads-generate", "ads-photoshoot",
+        "seo-audit", "seo-technical", "seo-content", "seo-aeo", "seo-schema",
+        "seo-authority", "seo-keywords", "seo-competitor", "seo-local"
     )
     foreach ($skill in $SubSkills) {
         $SkillPath = Join-Path $ClaudeDir "skills\$skill"
@@ -38,7 +42,8 @@ function Main {
     $Agents = @(
         "audit-google", "audit-meta", "audit-creative",
         "audit-tracking", "audit-budget", "audit-compliance",
-        "creative-strategist", "visual-designer", "copy-writer", "format-adapter"
+        "creative-strategist", "visual-designer", "copy-writer", "format-adapter",
+        "audit-seo-technical", "audit-seo-content", "audit-seo-aeo", "audit-seo-authority"
     )
     foreach ($agent in $Agents) {
         $AgentPath = Join-Path $ClaudeDir "agents\$agent.md"
