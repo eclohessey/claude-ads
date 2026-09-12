@@ -266,6 +266,13 @@ def analyze_html(url, html, status=None, headers=None, elapsed_ms=None, redirect
                 len(p.first_paragraph.split()) if p.first_paragraph else 0
             ),
         },
+        "mobile": {
+            # TE22 is a Critical check — a missing viewport meta makes the page
+            # non-responsive on mobile, which is most search traffic.
+            "viewport_meta": p.meta.get("viewport"),
+            "has_viewport": bool(p.meta.get("viewport")),
+            "responsive_viewport": "width=device-width" in (p.meta.get("viewport") or ""),
+        },
         "indexing": {
             "canonical": p.canonical,
             "canonical_self_referencing": (
@@ -442,6 +449,9 @@ def summarize(pages):
         "missing_canonical_pct": pct(
             sum(1 for p in ok if not p["indexing"]["canonical"])
         ),
+        "missing_viewport_pages": [
+            p["url"] for p in ok if not p["mobile"]["responsive_viewport"]
+        ],
         "no_schema_pct": pct(sum(1 for p in ok if not p["schema"]["types"])),
         "schema_types": dict(schema_types.most_common()),
         "thin_pages": [
@@ -480,6 +490,7 @@ def print_report(pages, summary):
     print(f"  Missing meta desc:     {summary['missing_meta_desc_pct']}%")
     print(f"  H1 != 1:               {summary['bad_h1_pct']}%")
     print(f"  Missing canonical:     {summary['missing_canonical_pct']}%")
+    print(f"  No responsive viewport: {len(summary['missing_viewport_pages'])}")
     print(f"  No structured data:    {summary['no_schema_pct']}%")
     print(f"  Duplicate titles:      {summary['duplicate_titles']}")
     print(f"  Images missing alt:    {summary['images_missing_alt']}")
