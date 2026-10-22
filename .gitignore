@@ -73,3 +73,8 @@ youtube-script.pdf
 # Internal QA artifacts
 AUDIT-REPORT.md
 .github-audit/
+
+# Generated audit output (site-specific, not repo source)
+SEO-AUDIT-REPORT.md
+crawl.json
+ai-visibility.json

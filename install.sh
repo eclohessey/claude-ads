@@ -6,12 +6,13 @@ set -euo pipefail
 
 main() {
     SKILL_DIR="${HOME}/.claude/skills/ads"
+    SEO_SKILL_DIR="${HOME}/.claude/skills/seo"
     AGENT_DIR="${HOME}/.claude/agents"
     REPO_URL="https://github.com/AgriciDaniel/claude-ads"
 
     echo "════════════════════════════════════════"
     echo "║   Claude Ads - Installer             ║"
-    echo "║   Claude Code Paid Ads Skill         ║"
+    echo "║   Paid Ads + SEO / AI Search Skills  ║"
     echo "════════════════════════════════════════"
     echo ""
 
@@ -21,6 +22,7 @@ main() {
 
     # Create directories
     mkdir -p "${SKILL_DIR}/references"
+    mkdir -p "${SEO_SKILL_DIR}/references"
     mkdir -p "${AGENT_DIR}"
 
     # Clone or update
@@ -34,6 +36,8 @@ main() {
     echo "→ Installing skill files..."
     cp "${TEMP_DIR}/claude-ads/ads/SKILL.md" "${SKILL_DIR}/SKILL.md"
     cp "${TEMP_DIR}/claude-ads/ads/references/"*.md "${SKILL_DIR}/references/"
+    cp "${TEMP_DIR}/claude-ads/seo/SKILL.md" "${SEO_SKILL_DIR}/SKILL.md"
+    cp "${TEMP_DIR}/claude-ads/seo/references/"*.md "${SEO_SKILL_DIR}/references/"
 
     # Copy sub-skills
     echo "→ Installing sub-skills..."
@@ -61,6 +65,14 @@ main() {
         mkdir -p "${SCRIPTS_DIR}"
         cp "${TEMP_DIR}/claude-ads/scripts/"*.py "${SCRIPTS_DIR}/"
         cp "${TEMP_DIR}/claude-ads/requirements.txt" "${SKILL_DIR}/requirements.txt"
+
+        # SEO scripts resolve under the seo skill directory
+        SEO_SCRIPTS_DIR="${SEO_SKILL_DIR}/scripts"
+        mkdir -p "${SEO_SCRIPTS_DIR}"
+        for seo_script in seo_crawl.py check_ai_crawlers.py ai_visibility.py; do
+            cp "${TEMP_DIR}/claude-ads/scripts/${seo_script}" "${SEO_SCRIPTS_DIR}/"
+        done
+        cp "${TEMP_DIR}/claude-ads/requirements.txt" "${SEO_SKILL_DIR}/requirements.txt"
     fi
 
     # Install Python dependencies (required for /ads generate, /ads dna screenshots)
@@ -87,17 +99,18 @@ main() {
     echo "✓ Claude Ads installed successfully!"
     echo ""
     echo "  Installed:"
-    echo "    • 1 main skill (ads orchestrator)"
-    echo "    • 17 sub-skills (platform + functional + creative)"
-    echo "    • 10 agents (6 audit + 4 creative)"
-    echo "    • 20 reference files"
+    echo "    • 2 main skills (ads + seo orchestrators)"
+    echo "    • 26 sub-skills (17 ads + 9 seo)"
+    echo "    • 14 agents (6 ad audit + 4 creative + 4 seo audit)"
+    echo "    • 30 reference files"
     echo "    • 11 industry templates"
     echo ""
     echo "Usage:"
     echo "  1. Start Claude Code:  claude"
     echo "  2. Run commands:       /ads audit"
     echo "                         /ads plan saas"
-    echo "                         /ads google"
+    echo "                         /seo audit example.com"
+    echo "                         /seo aeo example.com"
     echo ""
     echo "To uninstall: curl -fsSL ${REPO_URL}/raw/main/uninstall.sh | bash"
 }

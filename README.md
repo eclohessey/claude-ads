@@ -2,9 +2,14 @@
   <img src="assets/banner.png" alt="Claude Ads — Paid Advertising Audit Skill for Claude Code" width="100%">
 </p>
 
-# Claude Ads — Paid Advertising Audit Skill for Claude Code
+# Claude Ads — Paid Advertising + SEO / AI Search Skills for Claude Code
 
-Comprehensive paid advertising audit and optimization skill for Claude Code. Covers Google Ads, Meta Ads, YouTube Ads, LinkedIn Ads, TikTok Ads, Microsoft Ads, and Apple Search Ads with 190+ audit checks, industry-specific templates, and parallel subagent delegation.
+Two Claude Code skills sharing one architecture:
+
+- **`/ads`** — paid advertising audit and optimization across Google, Meta, YouTube, LinkedIn, TikTok, Microsoft, and Apple Search Ads. 225+ weighted checks, industry templates, parallel subagent delegation.
+- **`/seo`** — organic search ranking and AI-answer visibility (AEO/GEO) for ChatGPT, Claude, Perplexity, and Google AI Overviews. 110 weighted checks producing **separate Google Search and AI Search scores**.
+
+Install together, use either independently.
 
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-blue)](https://claude.ai/claude-code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -17,6 +22,7 @@ Comprehensive paid advertising audit and optimization skill for Claude Code. Cov
 - [Demo](#demo)
 - [Quick Start](#quick-start)
 - [Commands](#commands)
+- [SEO & AI Search](#seo--ai-search)
 - [Features](#features)
 - [Architecture](#architecture)
 - [How It Analyzes Your Ads](#how-it-analyzes-your-ads)
@@ -82,6 +88,17 @@ claude
 
 # Budget and bidding strategy review
 /ads budget
+
+# Full SEO + AI search audit of a website
+/seo audit example.com
+
+# AI-answer visibility only (ChatGPT, Claude, Perplexity)
+/seo aeo example.com
+
+# Single-dimension SEO analysis
+/seo technical example.com
+/seo content example.com/pricing
+/seo keywords "your category"
 ```
 
 ## Commands
@@ -101,6 +118,15 @@ claude
 | `/ads apple` | Apple Search Ads (ASA) deep analysis (campaign structure, bids, MMP, TAP) |
 | `/ads plan <type>` | Strategic ad plan with industry templates |
 | `/ads competitor` | Competitor ad intelligence across all platforms |
+| `/seo audit <url>` | Full SEO + AI search audit → separate Google and AI scores |
+| `/seo technical <url>` | Crawlability, indexing, JS rendering, Core Web Vitals |
+| `/seo content <url>` | Content quality, intent match, E-E-A-T, cannibalization |
+| `/seo aeo <url>` | AI search readiness for ChatGPT, Claude, Perplexity, AI Overviews |
+| `/seo schema <url>` | Structured data and entity graph |
+| `/seo authority <url>` | Backlink profile, brand signals, link gaps |
+| `/seo keywords <topic>` | Query research mapped to intent and owner pages |
+| `/seo competitor <url>` | Competitive gap analysis for search and AI |
+| `/seo local <url>` | Local SEO, Google Business Profile, NAP consistency |
 
 ### `/ads audit`
 **Full Multi-Platform Audit**
@@ -132,6 +158,82 @@ Industry-specific templates with platform mix, campaign architecture, creative s
 - `finance` — Special Ad Category (credit), required disclosures
 - `agency` — Multi-client management, reporting framework
 - `generic` — Universal template with platform selection questionnaire
+
+## SEO & AI Search
+
+`/seo` audits a site for classic search ranking **and** for citation by AI answer
+engines. They share roughly 80% of their inputs; the 20% that differs is where
+most sites fail.
+
+```bash
+# Full audit with 4 parallel agents
+/seo audit example.com
+
+# Just the AI-visibility layer
+/seo aeo example.com
+
+# Why isn't this page ranking?
+/seo content example.com/pricing
+```
+
+### Two Scores, Not One
+
+The same 110 checks are weighted twice, because the remediation plans differ:
+
+```
+Google Score    = Technical(30%) + Content(30%) + Authority(25%) + Schema(15%)
+AI Search Score = AEO(40%) + Content(25%) + Schema(20%) + Technical(15%)
+```
+
+A site with strong backlinks and weak chunk structure scores well on Google and
+badly on AI. A new site with excellent answer-first content scores the reverse.
+Collapsing them into one number hides the finding.
+
+### 110 SEO Checks
+
+| Category | Checks | Weight | Key Areas |
+|----------|--------|--------|-----------|
+| Technical & Indexing | TE01-TE30 | 25% | Crawl, index, JS rendering, Core Web Vitals, mobile |
+| Content & Relevance | CO01-CO25 | 25% | Intent match, clusters, cannibalization, E-E-A-T, decay |
+| AI Search Readiness | AE01-AE25 | 20% | Crawler access, chunk extractability, entity, off-site |
+| Authority & Off-Site | AU01-AU15 | 20% | Referring domains, anchors, reclamation, link gaps |
+| Structured Data | SD01-SD15 | 10% | JSON-LD coverage, validity, entity graph |
+
+### Included Scripts
+
+Three Python tools, no API keys required:
+
+```bash
+# Crawl and extract on-page SEO + AI-extractability signals
+python ~/.claude/skills/seo/scripts/seo_crawl.py https://example.com --crawl 25
+
+# Check which search and AI crawlers can actually reach the site
+python ~/.claude/skills/seo/scripts/check_ai_crawlers.py example.com
+
+# Build and track an AI visibility baseline across engines
+python ~/.claude/skills/seo/scripts/ai_visibility.py init \
+    --brand "Example" --domain example.com \
+    --competitors "Alpha,Beta" --topics "your category"
+```
+
+`check_ai_crawlers.py` distinguishes **training** crawlers (`GPTBot`,
+`ClaudeBot`, `Google-Extended`) from **answer** crawlers (`OAI-SearchBot`,
+`ChatGPT-User`, `Claude-SearchBot`, `PerplexityBot`). Only the latter affect
+whether you get cited in live AI answers — conflating them is the most common
+error in AI-search advice.
+
+### What It Will Not Do
+
+- **Invent metrics.** Traffic, rankings, search volume, backlink counts, and
+  Domain Authority are reported only from data you supply or a tool returns.
+  Everything else lands in the report's "Not Evaluated" table.
+- **Claim AI visibility is precisely measurable.** There is no rank API for AI
+  answers. Visibility is sampled with a fixed prompt set and tracked as a
+  direction over months, never as a rank.
+- **Recommend anything that risks a manual action.** No bought links, PBNs,
+  cloaking, invisible-content markup, or fabricated reviews.
+- **Promise faster timelines than the benchmarks support.** New content on a new
+  domain takes 6-12 months. The skill says so.
 
 ## Features
 
@@ -175,11 +277,18 @@ Hard rules enforced during every audit:
 ## Architecture
 
 ```
-~/.claude/skills/ads/              # Main orchestrator
-~/.claude/skills/ads/references/   # 12 RAG reference files
-~/.claude/skills/ads-*/            # 13 sub-skills
+~/.claude/skills/ads/              # Paid ads orchestrator
+~/.claude/skills/ads/references/   # 20 RAG reference files
+~/.claude/skills/ads/scripts/      # Python execution scripts
+~/.claude/skills/ads-*/            # 17 paid sub-skills
 ~/.claude/skills/ads-plan/assets/  # 11 industry templates
-~/.claude/agents/audit-*.md        # 6 parallel audit agents
+
+~/.claude/skills/seo/              # SEO / AI search orchestrator
+~/.claude/skills/seo/references/   # 10 RAG reference files
+~/.claude/skills/seo/scripts/      # seo_crawl, check_ai_crawlers, ai_visibility
+~/.claude/skills/seo-*/            # 9 SEO sub-skills
+
+~/.claude/agents/audit-*.md        # 14 parallel audit agents
 ```
 
 ### How It Works
@@ -206,6 +315,9 @@ For direct API access without manual exports, install the [Google Ads MCP](https
 
 ## FAQ
 
+**Does `/seo` connect to Google Search Console automatically?**
+No. It crawls the public site directly and asks you to paste or share Search Console data. Without that data the audit is structural only — it says so explicitly rather than filling the gaps with estimates.
+
 **Can Claude Ads log into my ad manager automatically?**
 No. Claude Ads analyzes data you provide (exports, screenshots, or pasted metrics). It doesn't connect to ad platforms automatically. See the Live Data Integration section above for Google Ads API access via MCP.
 
@@ -224,7 +336,10 @@ Currently supported: Google, Meta (Facebook/Instagram), YouTube, LinkedIn, TikTo
 ## Requirements
 
 - Claude Code CLI
-- Python 3.10+ with Playwright (optional, for live landing page analysis)
+- Python 3.10+ with `requests` (for `/seo` crawling and crawler checks)
+- Playwright (optional, for live landing page analysis and brand screenshots)
+
+`ai_visibility.py` is stdlib-only and needs no dependencies.
 
 ## Uninstall
 

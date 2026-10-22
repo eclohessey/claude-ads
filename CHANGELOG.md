@@ -5,6 +5,47 @@ All notable changes to claude-ads are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-09-11
+
+### Added
+- **`seo` skill** — organic search ranking and AI-answer visibility audit, sharing
+  the `ads` 3-layer architecture. 9 sub-skills, 4 parallel subagents, 10 reference
+  files, 110 weighted checks.
+- **Dual scoring**: the same checks are weighted twice, producing a Google Search
+  Score and an AI Search Score. They diverge, and the divergence determines which
+  remediation plan to run first.
+- **Check families**: technical and indexing (TE01-TE30), content quality and
+  E-E-A-T (CO01-CO25), AI search readiness (AE01-AE25), off-site authority
+  (AU01-AU15), structured data (SD01-SD15).
+- **Sub-skills**: `/seo audit`, `/seo technical`, `/seo content`, `/seo aeo`,
+  `/seo schema`, `/seo authority`, `/seo keywords`, `/seo competitor`, `/seo local`.
+- **Subagents**: `audit-seo-technical`, `audit-seo-content`, `audit-seo-aeo`,
+  `audit-seo-authority`, spawned in parallel during `/seo audit`.
+- **`scripts/seo_crawl.py`** — crawls a site and extracts on-page SEO plus
+  AI-extractability signals (answer-first structure, question-shaped headings,
+  self-contained sections, tables, JSON-LD types, JS-dependency detection).
+  Uses the stdlib HTML parser; only `requests` is required.
+- **`scripts/check_ai_crawlers.py`** — parses robots.txt with correct
+  user-agent-group and longest-match precedence, and reports access per crawler.
+  Separates training crawlers (`GPTBot`, `ClaudeBot`, `Google-Extended`) from
+  answer crawlers (`OAI-SearchBot`, `ChatGPT-User`, `Claude-SearchBot`,
+  `PerplexityBot`) — only the latter affect live AI citation.
+- **`scripts/ai_visibility.py`** — stdlib-only prompt-set generator and result
+  ledger for measuring brand visibility across AI answer engines, reporting
+  visibility rate, citation rate, and share of voice against competitors.
+
+### Changed
+- Install and uninstall scripts (bash + PowerShell) now handle both skill trees;
+  SEO scripts install under `~/.claude/skills/seo/scripts/`.
+- `CLAUDE.md` and `README.md` document both skills and the SEO quality gates.
+
+### Notes
+- The `seo` skill never fabricates traffic, ranking, search volume, backlink, or
+  Domain Authority figures. Unmeasurable checks are reported in a "Not Evaluated"
+  table rather than scored as passes.
+- AI visibility is sampled via a fixed prompt set, not measured. There is no rank
+  API for AI answers; reports track direction over time, never a rank.
+
 ## [1.2.0] - 2026-03-12
 
 ### Added
